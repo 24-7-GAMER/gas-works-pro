@@ -97,6 +97,21 @@ function buildHtml(params: {
 
   if (isInvoice && job.invoiceItems?.length) {
     const money = (value: number) => `£${value.toFixed(2)}`;
+    const invoiceLabel = isQuote ? "Quotation" : "Invoice";
+    const statusClass = isQuote ? "status-quote" : job.status === "paid" ? "status-paid" : "status-due";
+    const paymentTerms = isQuote
+      ? "This quotation is valid for 30 days from the issue date unless otherwise agreed in writing."
+      : job.dueDate
+      ? `Payment is due by ${escapeHtml(invoiceDueDate)}. Please use ${escapeHtml(job.jobNumber)} as your payment reference.`
+      : `Payment is due on receipt. Please use ${escapeHtml(job.jobNumber)} as your payment reference.`;
+    const notesHtml = job.invoiceNotes
+      ? formatMultiline(job.invoiceNotes)
+      : job.quoteNotes
+      ? formatMultiline(job.quoteNotes)
+      : job.observations
+      ? formatMultiline(job.observations)
+      : "Thank you for your business.";
+
     const invoiceItemsHtml = job.invoiceItems
       .map((item: any, index: number) => {
         const lineSubtotal = item.quantity * item.unitPrice;
@@ -107,35 +122,15 @@ function buildHtml(params: {
           <td class="col-index">${index + 1}</td>
           <td class="col-description">
             <div class="item-title">${escapeHtml(item.description)}</div>
-            <div class="item-subtitle">${escapeHtml(getJobTypeLabel(job.jobType))} for ${escapeHtml(customer?.name ?? "Customer")}</div>
+            <div class="item-meta">${escapeHtml(getJobTypeLabel(job.jobType))} for ${escapeHtml(customer?.name ?? "Customer")}</div>
           </td>
           <td class="col-qty">${escapeHtml(String(item.quantity))}</td>
           <td class="col-money">${money(item.unitPrice)}</td>
           <td class="col-money">${item.vatRate}%</td>
-          <td class="col-money amount-strong">${money(lineTotal)}</td>
+          <td class="col-money total-strong">${money(lineTotal)}</td>
         </tr>`;
       })
       .join("");
-
-    const invoiceNotesHtml = job.invoiceNotes
-      ? formatMultiline(job.invoiceNotes)
-      : job.quoteNotes
-      ? formatMultiline(job.quoteNotes)
-      : job.observations
-      ? formatMultiline(job.observations)
-      : "Thank you for your business.";
-
-    const paymentTerms = isQuote
-      ? "This quotation is valid for 30 days from the issue date unless otherwise agreed in writing."
-      : job.dueDate
-      ? `Payment due by ${escapeHtml(invoiceDueDate)}. Please use ${escapeHtml(job.jobNumber)} as the payment reference.`
-      : `Payment due on receipt. Please use ${escapeHtml(job.jobNumber)} as the payment reference.`;
-
-    const invoiceStatusClass = isQuote
-      ? "status-quote"
-      : job.status === "paid"
-      ? "status-paid"
-      : "status-due";
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -154,298 +149,322 @@ function buildHtml(params: {
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      color: #0f172a;
-      background: #ffffff;
+      color: #102033;
+      background: #eef3f8;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
-    .page {
-      width: 100%;
+    .page-shell {
+      width: 186mm;
+      min-height: 273mm;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #d7e1ec;
+      padding: 14mm 14mm 12mm;
     }
-    .accent-bar {
-      height: 6px;
-      background: linear-gradient(90deg, #0f172a 0%, #1e293b 55%, #f97316 100%);
+    .top-rule {
+      height: 8px;
+      background: linear-gradient(90deg, #0f172a 0%, #1e3a5f 55%, #f97316 100%);
       border-radius: 999px;
-      margin-bottom: 18px;
+      margin-bottom: 14mm;
     }
-    .masthead {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 18px;
+    .hero {
+      font-size: 0;
+      margin-bottom: 12mm;
     }
-    .masthead td {
+    .hero-left,
+    .hero-right {
+      display: inline-block;
       vertical-align: top;
+      font-size: 14px;
     }
-    .brand-cell {
-      width: 58%;
-      padding-right: 14px;
+    .hero-left {
+      width: 62%;
+      padding-right: 8mm;
     }
-    .invoice-cell {
-      width: 42%;
-      text-align: right;
+    .hero-right {
+      width: 38%;
     }
-    .brand-wrap {
-      width: 100%;
-      border: 1px solid #dbe3ee;
-      border-radius: 16px;
-      background: #f8fafc;
-      padding: 16px;
+    .brand-card {
+      border: 1px solid #dbe3ec;
+      background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+      padding: 22px 24px;
+      min-height: 138px;
     }
-    .brand-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    .brand-table td {
-      vertical-align: middle;
-    }
-    .logo-cell {
-      width: 74px;
-      padding-right: 14px;
-    }
-    .logo-shell {
-      width: 60px;
-      height: 60px;
-      border-radius: 14px;
-      background: #fff7ed;
+    .brand-logo {
+      display: inline-block;
+      width: 72px;
+      height: 72px;
+      padding: 9px;
       border: 1px solid #fed7aa;
-      padding: 8px;
+      background: #fff7ed;
+      vertical-align: top;
+      margin-right: 16px;
     }
-    .logo-shell img {
+    .brand-logo img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: contain;
     }
+    .brand-copy {
+      display: inline-block;
+      width: calc(100% - 88px);
+      vertical-align: top;
+    }
     .company-name {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #0f172a;
       margin: 0 0 6px;
+      font-size: 32px;
+      line-height: 1.08;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #0f172a;
+    }
+    .company-subline {
+      margin: 0 0 12px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #64748b;
     }
     .company-meta {
-      font-size: 12px;
-      line-height: 1.55;
-      color: #475569;
+      font-size: 13px;
+      line-height: 1.75;
+      color: #334155;
     }
     .company-meta strong {
       color: #0f172a;
     }
-    .document-title {
-      font-size: 30px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      color: #0f172a;
-      margin: 0 0 10px;
+    .doc-card {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 22px 22px 20px;
+      min-height: 138px;
+    }
+    .doc-label {
+      margin: 0 0 8px;
+      font-size: 12px;
       text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    .doc-number {
+      margin: 0 0 14px;
+      font-size: 34px;
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.03em;
     }
     .status-pill {
       display: inline-block;
-      padding: 6px 12px;
+      padding: 8px 14px;
       border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 12px;
     }
     .status-paid {
       background: #dcfce7;
       color: #166534;
-      border: 1px solid #86efac;
     }
     .status-due {
       background: #ffedd5;
       color: #c2410c;
-      border: 1px solid #fdba74;
     }
     .status-quote {
       background: #fef3c7;
       color: #92400e;
-      border: 1px solid #fcd34d;
     }
-    .doc-meta {
-      width: 100%;
-      border-collapse: collapse;
+    .meta-strip {
+      font-size: 0;
+      margin-bottom: 12mm;
+    }
+    .meta-box {
+      display: inline-block;
+      width: 24%;
+      margin-right: 1.333%;
+      padding: 16px 16px 15px;
+      border: 1px solid #dbe3ec;
       background: #ffffff;
-      border: 1px solid #dbe3ee;
-      border-radius: 16px;
-      overflow: hidden;
-    }
-    .doc-meta td {
-      padding: 9px 12px;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 12px;
-    }
-    .doc-meta tr:last-child td {
-      border-bottom: none;
-    }
-    .doc-meta-label {
-      width: 44%;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 10px;
-      font-weight: 700;
-    }
-    .doc-meta-value {
-      width: 56%;
-      text-align: right;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .detail-grid {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0 12px;
-      margin-bottom: 8px;
-    }
-    .detail-grid td {
-      width: 50%;
       vertical-align: top;
+      font-size: 13px;
+      min-height: 108px;
     }
-    .detail-left {
-      padding-right: 8px;
+    .meta-box.last {
+      margin-right: 0;
     }
-    .detail-right {
-      padding-left: 8px;
-    }
-    .detail-card {
-      border: 1px solid #dbe3ee;
-      border-radius: 16px;
-      padding: 16px;
-      min-height: 128px;
-      background: #ffffff;
-    }
-    .detail-label {
+    .meta-kicker {
       margin: 0 0 8px;
-      color: #64748b;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-size: 10px;
-      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #64748b;
     }
-    .detail-title {
-      margin: 0 0 8px;
-      font-size: 16px;
+    .meta-value {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
       font-weight: 700;
       color: #0f172a;
     }
-    .detail-text {
-      font-size: 12px;
-      line-height: 1.6;
+    .info-grid {
+      font-size: 0;
+      margin-bottom: 12mm;
+    }
+    .info-card {
+      display: inline-block;
+      width: 49%;
+      min-height: 170px;
+      padding: 22px 24px;
+      border: 1px solid #dbe3ec;
+      background: #ffffff;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    .info-card.left {
+      margin-right: 2%;
+    }
+    .section-label {
+      margin: 0 0 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #64748b;
+    }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 26px;
+      line-height: 1.15;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .section-text {
+      font-size: 14px;
+      line-height: 1.7;
       color: #334155;
     }
-    .detail-text strong {
+    .section-text strong {
       color: #0f172a;
+    }
+    .items-wrap {
+      margin-bottom: 12mm;
+    }
+    .items-heading {
+      margin: 0 0 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #64748b;
     }
     .items-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0 16px;
-      border: 1px solid #cbd5e1;
-      border-radius: 16px;
-      overflow: hidden;
+      table-layout: fixed;
+      border: 1px solid #dbe3ec;
     }
     .items-table thead th {
-      background: #eff6ff;
-      color: #334155;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-size: 10px;
-      padding: 11px 12px;
+      padding: 13px 14px;
+      background: #eef5fb;
+      border-bottom: 1px solid #dbe3ec;
       text-align: left;
-      border-bottom: 1px solid #cbd5e1;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #425466;
     }
     .items-table tbody td {
-      padding: 12px;
-      font-size: 12px;
-      border-bottom: 1px solid #e2e8f0;
+      padding: 20px 14px;
+      border-bottom: 1px solid #e6edf4;
       vertical-align: top;
+      font-size: 14px;
+      color: #0f172a;
     }
     .items-table tbody tr:last-child td {
       border-bottom: none;
     }
     .items-table tbody tr:nth-child(even) td {
-      background: #f8fafc;
+      background: #fbfdff;
     }
     .col-index {
-      width: 36px;
+      width: 7%;
       text-align: center;
       color: #64748b;
     }
     .col-description {
-      width: auto;
+      width: 43%;
     }
     .col-qty {
-      width: 58px;
+      width: 10%;
       text-align: center;
-      white-space: nowrap;
     }
     .col-money {
-      width: 92px;
+      width: 13.333%;
       text-align: right;
       white-space: nowrap;
     }
     .item-title {
+      margin: 0 0 5px;
+      font-size: 15px;
       font-weight: 700;
       color: #0f172a;
-      margin-bottom: 4px;
     }
-    .item-subtitle {
-      font-size: 11px;
+    .item-meta {
+      font-size: 12px;
+      line-height: 1.55;
       color: #64748b;
-      line-height: 1.45;
     }
-    .amount-strong {
+    .total-strong {
       font-weight: 700;
     }
-    .after-items {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 14px;
+    .summary-row {
+      font-size: 0;
+      margin-bottom: 12mm;
     }
-    .after-items td {
+    .notes-panel,
+    .totals-panel {
+      display: inline-block;
       vertical-align: top;
+      font-size: 14px;
     }
-    .notes-cell {
-      width: 57%;
-      padding-right: 14px;
+    .notes-panel {
+      width: 58%;
+      padding-right: 8mm;
     }
-    .totals-cell {
-      width: 43%;
-      padding-left: 14px;
+    .totals-panel {
+      width: 42%;
     }
-    .notes-card,
-    .totals-card {
-      border: 1px solid #dbe3ee;
-      border-radius: 16px;
-      overflow: hidden;
+    .panel {
+      border: 1px solid #dbe3ec;
       background: #ffffff;
     }
-    .card-head {
-      padding: 10px 14px;
+    .panel-head {
+      padding: 12px 16px;
       background: #0f172a;
       color: #ffffff;
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
-    .card-body {
-      padding: 14px;
-      font-size: 12px;
-      line-height: 1.65;
+    .panel-body {
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.75;
       color: #334155;
+      min-height: 132px;
+    }
+    .panel-body strong {
+      color: #0f172a;
     }
     .totals-table {
       width: 100%;
       border-collapse: collapse;
     }
     .totals-table td {
-      padding: 11px 14px;
-      font-size: 12px;
-      border-bottom: 1px solid #e2e8f0;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e6edf4;
+      font-size: 14px;
     }
     .totals-table tr:last-child td {
       border-bottom: none;
@@ -462,18 +481,18 @@ function buildHtml(params: {
     .totals-table .grand td {
       background: #fff7ed;
       color: #9a3412;
-      font-size: 15px;
+      font-size: 20px;
       font-weight: 800;
     }
     .totals-table .grand .value {
       color: #c2410c;
     }
     .footer {
-      margin-top: 8px;
+      margin-top: 14mm;
       padding-top: 12px;
-      border-top: 1px solid #cbd5e1;
-      font-size: 11px;
-      line-height: 1.6;
+      border-top: 1px solid #dbe3ec;
+      font-size: 12px;
+      line-height: 1.7;
       color: #64748b;
       text-align: center;
     }
@@ -483,137 +502,130 @@ function buildHtml(params: {
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="accent-bar"></div>
+  <div class="page-shell">
+    <div class="top-rule"></div>
 
-    <table class="masthead">
-      <tr>
-        <td class="brand-cell">
-          <div class="brand-wrap">
-            <table class="brand-table">
-              <tr>
-                <td class="logo-cell">
-                  <div class="logo-shell">
-                    <img src="${COMPANY_LOGO_DATA_URI}" alt="${escapeHtml(invoiceCompanyName)} logo">
-                  </div>
-                </td>
-                <td>
-                  <div class="company-name">${escapeHtml(invoiceCompanyName)}</div>
-                  <div class="company-meta">
-                    <strong>Company No:</strong> ${escapeHtml(invoiceCompanyNumber)}<br>
-                    ${engineer.vatRegistered && engineer.vatNumber ? `<strong>VAT No:</strong> ${escapeHtml(engineer.vatNumber)}<br>` : ""}
-                    ${engineer.email ? `<strong>Email:</strong> ${escapeHtml(engineer.email)}<br>` : ""}
-                    ${engineer.phone ? `<strong>Tel:</strong> ${escapeHtml(engineer.phone)}` : ""}
-                  </div>
-                </td>
-              </tr>
-            </table>
+    <div class="hero">
+      <div class="hero-left">
+        <div class="brand-card">
+          <div class="brand-logo">
+            <img src="${COMPANY_LOGO_DATA_URI}" alt="${escapeHtml(invoiceCompanyName)} logo">
           </div>
-        </td>
-        <td class="invoice-cell">
-          <div class="document-title">${isQuote ? "Quote" : "Invoice"}</div>
-          <div class="status-pill ${invoiceStatusClass}">${escapeHtml(invoiceStatus)}</div>
-          <table class="doc-meta">
+          <div class="brand-copy">
+            <p class="company-name">${escapeHtml(invoiceCompanyName)}</p>
+            <p class="company-subline">Heating, Gas & Plumbing Services</p>
+            <div class="company-meta">
+              <strong>Company No:</strong> ${escapeHtml(invoiceCompanyNumber)}<br>
+              ${engineer.vatRegistered && engineer.vatNumber ? `<strong>VAT No:</strong> ${escapeHtml(engineer.vatNumber)}<br>` : ""}
+              ${engineer.email ? `<strong>Email:</strong> ${escapeHtml(engineer.email)}<br>` : ""}
+              ${engineer.phone ? `<strong>Tel:</strong> ${escapeHtml(engineer.phone)}` : ""}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="doc-card">
+          <p class="doc-label">${invoiceLabel}</p>
+          <p class="doc-number">${escapeHtml(job.jobNumber)}</p>
+          <span class="status-pill ${statusClass}">${escapeHtml(invoiceStatus)}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-strip">
+      <div class="meta-box">
+        <p class="meta-kicker">Issue Date</p>
+        <p class="meta-value">${escapeHtml(invoiceIssueDate)}</p>
+      </div>
+      <div class="meta-box">
+        <p class="meta-kicker">${isQuote ? "Valid Until" : "Due Date"}</p>
+        <p class="meta-value">${escapeHtml(invoiceDueDate)}</p>
+      </div>
+      <div class="meta-box">
+        <p class="meta-kicker">Reference</p>
+        <p class="meta-value">${escapeHtml(job.id)}</p>
+      </div>
+      <div class="meta-box last">
+        <p class="meta-kicker">Engineer</p>
+        <p class="meta-value">${escapeHtml(job.engineerName || engineer.name || invoiceCompanyName)}</p>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card left">
+        <p class="section-label">Bill To</p>
+        <p class="section-title">${escapeHtml(customer?.name ?? "Customer")}</p>
+        <div class="section-text">
+          ${customer?.address ? `${formatMultiline(customer.address)}<br>` : ""}
+          ${customer?.email ? `${escapeHtml(customer.email)}<br>` : ""}
+          ${customer?.phone ? `${escapeHtml(customer.phone)}` : ""}
+        </div>
+      </div>
+      <div class="info-card">
+        <p class="section-label">Service Details</p>
+        <p class="section-title">${escapeHtml(getJobTypeLabel(job.jobType))}</p>
+        <div class="section-text">
+          <strong>Service Address:</strong><br>
+          ${formatMultiline(property?.address ?? customer?.address ?? "Not provided")}
+          ${property?.postcode ? `<br>${escapeHtml(property.postcode)}` : ""}
+          <br><br>
+          <strong>Visit Date:</strong> ${escapeHtml(formattedDate)}
+        </div>
+      </div>
+    </div>
+
+    <div class="items-wrap">
+      <p class="items-heading">Itemised Charges</p>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th class="col-index">#</th>
+            <th class="col-description">Description</th>
+            <th class="col-qty">Qty</th>
+            <th class="col-money">Unit Price</th>
+            <th class="col-money">VAT</th>
+            <th class="col-money">Line Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoiceItemsHtml}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="summary-row">
+      <div class="notes-panel">
+        <div class="panel">
+          <div class="panel-head">${isQuote ? "Quotation Notes" : "Payment Terms & Notes"}</div>
+          <div class="panel-body">
+            <strong>${isQuote ? "Terms:" : "Payment Terms:"}</strong> ${paymentTerms}<br><br>
+            <strong>${isQuote ? "Notes:" : "Additional Notes:"}</strong><br>
+            ${notesHtml}
+          </div>
+        </div>
+      </div>
+      <div class="totals-panel">
+        <div class="panel">
+          <div class="panel-head">${isQuote ? "Quotation Summary" : "Invoice Summary"}</div>
+          <table class="totals-table">
             <tr>
-              <td class="doc-meta-label">${isQuote ? "Quote Number" : "Invoice Number"}</td>
-              <td class="doc-meta-value">${escapeHtml(job.jobNumber)}</td>
+              <td class="label">Net</td>
+              <td class="value">${money(totalExVat)}</td>
             </tr>
             <tr>
-              <td class="doc-meta-label">${isQuote ? "Quote Date" : "Issue Date"}</td>
-              <td class="doc-meta-value">${escapeHtml(invoiceIssueDate)}</td>
+              <td class="label">VAT</td>
+              <td class="value">${money(totalVat)}</td>
             </tr>
-            <tr>
-              <td class="doc-meta-label">${isQuote ? "Valid Until" : "Due Date"}</td>
-              <td class="doc-meta-value">${escapeHtml(invoiceDueDate)}</td>
-            </tr>
-            <tr>
-              <td class="doc-meta-label">Reference</td>
-              <td class="doc-meta-value">${escapeHtml(job.id)}</td>
+            <tr class="grand">
+              <td>${isQuote ? "Total" : "Amount Due"}</td>
+              <td class="value">${money(totalInc)}</td>
             </tr>
           </table>
-        </td>
-      </tr>
-    </table>
+        </div>
+      </div>
+    </div>
 
-    <table class="detail-grid">
-      <tr>
-        <td class="detail-left">
-          <div class="detail-card">
-            <div class="detail-label">Bill To</div>
-            <div class="detail-title">${escapeHtml(customer?.name ?? "Customer")}</div>
-            <div class="detail-text">
-              ${customer?.address ? `${formatMultiline(customer.address)}<br>` : ""}
-              ${customer?.email ? `${escapeHtml(customer.email)}<br>` : ""}
-              ${customer?.phone ? `${escapeHtml(customer.phone)}` : ""}
-            </div>
-          </div>
-        </td>
-        <td class="detail-right">
-          <div class="detail-card">
-            <div class="detail-label">Service Details</div>
-            <div class="detail-title">${escapeHtml(getJobTypeLabel(job.jobType))}</div>
-            <div class="detail-text">
-              <strong>Service Address:</strong><br>
-              ${formatMultiline(property?.address ?? customer?.address ?? "Not provided")}
-              ${property?.postcode ? `<br>${escapeHtml(property.postcode)}` : ""}
-              <br><br>
-              <strong>Engineer:</strong> ${escapeHtml(job.engineerName || engineer.name || invoiceCompanyName)}<br>
-              <strong>Visit Date:</strong> ${escapeHtml(formattedDate)}
-            </div>
-          </div>
-        </td>
-      </tr>
-    </table>
-
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th class="col-index">#</th>
-          <th>Description</th>
-          <th class="col-qty">Qty</th>
-          <th class="col-money">Unit Price</th>
-          <th class="col-money">VAT</th>
-          <th class="col-money">Line Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${invoiceItemsHtml}
-      </tbody>
-    </table>
-
-    <table class="after-items">
-      <tr>
-        <td class="notes-cell">
-          <div class="notes-card">
-            <div class="card-head">${isQuote ? "Quotation Notes" : "Payment & Notes"}</div>
-            <div class="card-body">
-              <strong>${isQuote ? "Terms:" : "Payment Terms:"}</strong> ${paymentTerms}<br><br>
-              <strong>${isQuote ? "Notes:" : "Additional Notes:"}</strong><br>
-              ${invoiceNotesHtml}
-            </div>
-          </div>
-        </td>
-        <td class="totals-cell">
-          <div class="totals-card">
-            <div class="card-head">${isQuote ? "Quote Summary" : "Invoice Summary"}</div>
-            <table class="totals-table">
-              <tr>
-                <td class="label">Net</td>
-                <td class="value">${money(totalExVat)}</td>
-              </tr>
-              <tr>
-                <td class="label">VAT</td>
-                <td class="value">${money(totalVat)}</td>
-              </tr>
-              <tr class="grand">
-                <td>${isQuote ? "Total" : "Amount Due"}</td>
-                <td class="value">${money(totalInc)}</td>
-              </tr>
-            </table>
-          </div>
-        </td>
-      </tr>
-    </table>
+    </div>
 
     <div class="footer">
       <strong>${escapeHtml(invoiceCompanyName)}</strong>
@@ -829,6 +841,7 @@ function buildHtml(params: {
     .summary-row.total {
       border-top: 1px solid rgba(255,255,255,0.2);
       margin-top: 4px;
+      margin-top: 14mm;
       padding-top: 12px;
       color: #fff;
       font-weight: 700;
@@ -1719,4 +1732,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+
+
+
 
