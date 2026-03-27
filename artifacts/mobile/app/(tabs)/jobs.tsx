@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+﻿import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
@@ -66,15 +66,15 @@ export default function JobsScreen() {
   }, [jobs, filterType, statusFilter, search, getCustomerById, getPropertyById]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: topInset + 8 }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <View style={[styles.header, { paddingTop: topInset + 8 }]}> 
         <Text style={[styles.title, { color: colors.text }]}>Jobs</Text>
         <Pressable onPress={() => router.push("/new-job")} style={[styles.addBtn, { backgroundColor: colors.primary }]}>
           <Feather name="plus" size={22} color="#fff" />
         </Pressable>
       </View>
 
-      <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder }]}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.backgroundSecondary, borderColor: colors.cardBorder }]}> 
         <Feather name="search" size={16} color={colors.textTertiary} />
         <TextInput
           style={[styles.searchInput, { color: colors.text }]}
@@ -131,7 +131,7 @@ export default function JobsScreen() {
         ))}
       </ScrollView>
 
-      <Text style={[styles.count, { color: colors.textTertiary }]}>
+      <Text style={[styles.count, { color: colors.textTertiary }]}> 
         {filtered.length} {filtered.length === 1 ? "job" : "jobs"}
       </Text>
 
@@ -152,10 +152,10 @@ export default function JobsScreen() {
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
             <Feather name="clipboard" size={48} color={colors.textTertiary} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}> 
               {search || filterType !== "all" || statusFilter !== "all" ? "No results" : "No jobs yet"}
             </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}> 
               {search || filterType !== "all" || statusFilter !== "all"
                 ? "Try adjusting your search or filter"
                 : "Tap + to create your first job"}
@@ -210,7 +210,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   filterChip: {
-    paddingHorizontal: spacing.md,
+    flexShrink: 0,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 8,
     borderRadius: radius.full,
     borderWidth: 1,
@@ -218,6 +219,7 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_500Medium",
+    includeFontPadding: false,
   },
   count: {
     fontSize: fontSize.xs,
