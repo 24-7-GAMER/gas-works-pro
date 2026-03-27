@@ -1,0 +1,111 @@
+Build a mobile app primarily for iOS designed specifically for Gas Engineers in the UK as a replacement for “Gas Engineer Software”.
+
+This app must not just be a basic invoicing app. It must be built around the real workflow of a gas engineer.
+
+Main purpose
+
+Help gas engineers manage:
+
+customer details
+appointments/jobs
+gas safety records and certificates
+servicing records
+landlord/homeowner paperwork
+quotes and invoices
+sending documents by email or WhatsApp
+Core gas engineer features
+
+The app should include forms and workflows for:
+
+CP12 / Landlord Gas Safety Record
+Boiler service records
+Breakdown / repair jobs
+Installation records
+Warning notices
+Job notes and engineer observations
+
+Each record should let the engineer enter things like:
+
+customer name
+property address
+appliance type
+appliance make and model
+serial number
+location of appliance
+flue checks
+ventilation checks
+gas tightness / pressure test results
+safety checks
+defects found
+remedial work carried out
+engineer notes
+date
+engineer details
+Gas Safe registration number
+signature fields for engineer and customer
+Documents
+
+The app must:
+
+generate professional PDF certificates and records
+generate HTML versions of records where useful
+allow previewing documents before sending
+send documents by email
+send documents by WhatsApp
+save all previous records per customer and per property
+Customer and property management
+store multiple properties for one customer
+save customer contact details
+keep full service history for each property
+allow quick repeat visits using previous appliance/property data
+search customers, properties, and previous certificates easily
+Job workflow
+
+The app should support a real engineer workflow:
+
+Create or open customer
+Select property
+Choose job type (CP12, boiler service, repair, installation, warning notice, quote, invoice)
+Fill in engineer job form
+Generate document/certificate
+Get signatures
+Send to customer by email or WhatsApp
+Save to history
+Invoicing features
+
+Also include invoicing, but as part of the gas engineer workflow:
+
+create quotes and invoices linked to a job
+labour and materials breakdown
+VAT support
+mark paid/unpaid
+generate PDF invoice
+auto invoice numbers
+UI and design
+modern, professional, fast mobile interface
+designed for engineers using it on-site
+easy one-handed use
+large buttons and simple forms
+dark mode support
+minimal taps to complete a certificate
+Technical requirements
+iOS-first mobile app
+scalable codebase
+secure cloud sync
+offline support for working in properties with no signal
+sync when internet returns
+secure storage of customer and certificate data
+Extra requirements
+include sample gas engineer test data
+create realistic screen designs for:
+dashboard
+customer list
+property page
+job form
+certificate preview
+invoice page
+make the app feel like a real commercial field-service app for UK Gas Engineers
+Important
+
+Focus heavily on the gas engineer paperwork, certificates, service records, and job workflow.
+This is not just a generic invoice app with a gas theme.
