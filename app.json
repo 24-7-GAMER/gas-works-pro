@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "c63396af-1372-42fc-a7f2-ff7e3b2d93b4"
+      }
+    },
+    "owner": "al13mrn",
+    "ios": {
+      "bundleIdentifier": "com.al13mrn.gasworkspro",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
+  }
+}
