@@ -1,0 +1,43 @@
+# 🔥 Dependencies
+node_modules/
+
+# 🔥 Expo
+.expo/
+.expo-shared/
+
+# 🔥 Build output
+dist/
+build/
+web-build/
+
+# 🔥 Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 🔥 Environment files (IMPORTANT)
+.env
+.env.*
+
+# 🔥 OS junk
+.DS_Store
+Thumbs.db
+
+# 🔥 Editor files
+.vscode/
+.idea/
+
+# 🔥 TypeScript
+*.tsbuildinfo
+
+# 🔥 Metro bundler cache
+.metro-cache/
+
+# 🔥 Android / iOS build files
+android/
+ios/
+
+# 🔥 Temporary files
+*.tmp
+*.temp
