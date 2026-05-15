@@ -33,7 +33,7 @@
       [
         "expo-router",
         {
-          "origin": "https://replit.com/"
+          "origin": "https://github.com/al13mrn"
         }
       ],
       "expo-font",

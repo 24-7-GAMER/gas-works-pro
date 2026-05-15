@@ -17,6 +17,21 @@ const STORAGE_KEYS = {
   jobCounter: "@gasPro/jobCounter",
 };
 
+const BACKUP_SCHEMA_VERSION = 1;
+
+export interface AppBackup {
+  app: "Gas Works Pro";
+  schemaVersion: typeof BACKUP_SCHEMA_VERSION;
+  exportedAt: string;
+  data: {
+    customers: Customer[];
+    properties: Property[];
+    jobs: Job[];
+    engineer: Engineer;
+    jobCounter: number;
+  };
+}
+
 function generateId(): string {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9);
 }
@@ -24,6 +39,33 @@ function generateId(): string {
 function generateJobNumber(counter: number): string {
   const year = new Date().getFullYear();
   return `GP-${year}-${String(counter).padStart(4, "0")}`;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function assertBackup(value: unknown): asserts value is AppBackup {
+  if (!isPlainObject(value) || value.app !== "Gas Works Pro" || value.schemaVersion !== BACKUP_SCHEMA_VERSION) {
+    throw new Error("This is not a compatible Gas Works Pro backup.");
+  }
+
+  const data = value.data;
+  if (!isPlainObject(data)) {
+    throw new Error("The backup data is missing.");
+  }
+
+  if (!Array.isArray(data.customers) || !Array.isArray(data.properties) || !Array.isArray(data.jobs)) {
+    throw new Error("The backup is missing customers, properties, or jobs.");
+  }
+
+  if (!isPlainObject(data.engineer)) {
+    throw new Error("The backup is missing engineer settings.");
+  }
+
+  if (typeof data.jobCounter !== "number" || !Number.isFinite(data.jobCounter)) {
+    throw new Error("The backup has an invalid job counter.");
+  }
 }
 
 const SAMPLE_CUSTOMERS: Customer[] = [
@@ -329,6 +371,8 @@ interface AppContextValue {
   deleteJob: (id: string) => Promise<void>;
 
   updateEngineer: (updates: Partial<Engineer>) => Promise<void>;
+  createBackup: () => AppBackup;
+  importBackup: (backup: unknown) => Promise<AppBackup["data"]>;
 
   getCustomerById: (id: string) => Customer | undefined;
   getPropertyById: (id: string) => Property | undefined;
@@ -411,10 +455,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [customers, saveCustomers]);
 
   const deleteCustomer = useCallback(async (id: string) => {
-    const updated = customers.filter(c => c.id !== id);
-    setCustomers(updated);
-    await saveCustomers(updated);
-  }, [customers, saveCustomers]);
+    const updatedCustomers = customers.filter(c => c.id !== id);
+    const deletedPropertyIds = new Set(
+      properties.filter(p => p.customerId === id).map(p => p.id)
+    );
+    const updatedProperties = properties.filter(p => p.customerId !== id);
+    const updatedJobs = jobs.filter(
+      j => j.customerId !== id && !deletedPropertyIds.has(j.propertyId)
+    );
+
+    setCustomers(updatedCustomers);
+    setProperties(updatedProperties);
+    setJobs(updatedJobs);
+    await Promise.all([
+      saveCustomers(updatedCustomers),
+      saveProperties(updatedProperties),
+      saveJobs(updatedJobs),
+    ]);
+  }, [customers, jobs, properties, saveCustomers, saveJobs, saveProperties]);
 
   const addProperty = useCallback(async (property: Omit<Property, "id" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString();
@@ -432,10 +490,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [properties, saveProperties]);
 
   const deleteProperty = useCallback(async (id: string) => {
-    const updated = properties.filter(p => p.id !== id);
-    setProperties(updated);
-    await saveProperties(updated);
-  }, [properties, saveProperties]);
+    const updatedProperties = properties.filter(p => p.id !== id);
+    const updatedJobs = jobs.filter(j => j.propertyId !== id);
+
+    setProperties(updatedProperties);
+    setJobs(updatedJobs);
+    await Promise.all([
+      saveProperties(updatedProperties),
+      saveJobs(updatedJobs),
+    ]);
+  }, [jobs, properties, saveJobs, saveProperties]);
 
   const addJob = useCallback(async (job: Omit<Job, "id" | "jobNumber" | "createdAt" | "updatedAt">) => {
     const now = new Date().toISOString();
@@ -473,6 +537,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(STORAGE_KEYS.engineer, JSON.stringify(updated));
   }, [engineer]);
 
+  const createBackup = useCallback((): AppBackup => ({
+    app: "Gas Works Pro",
+    schemaVersion: BACKUP_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    data: {
+      customers,
+      properties,
+      jobs,
+      engineer,
+      jobCounter,
+    },
+  }), [customers, engineer, jobCounter, jobs, properties]);
+
+  const importBackup = useCallback(async (backup: unknown) => {
+    assertBackup(backup);
+    const imported = backup.data;
+    const nextJobCounter = Math.max(0, Math.floor(imported.jobCounter));
+
+    setCustomers(imported.customers);
+    setProperties(imported.properties);
+    setJobs(imported.jobs);
+    setEngineer(imported.engineer);
+    setJobCounter(nextJobCounter);
+
+    await Promise.all([
+      AsyncStorage.setItem(STORAGE_KEYS.customers, JSON.stringify(imported.customers)),
+      AsyncStorage.setItem(STORAGE_KEYS.properties, JSON.stringify(imported.properties)),
+      AsyncStorage.setItem(STORAGE_KEYS.jobs, JSON.stringify(imported.jobs)),
+      AsyncStorage.setItem(STORAGE_KEYS.engineer, JSON.stringify(imported.engineer)),
+      AsyncStorage.setItem(STORAGE_KEYS.jobCounter, String(nextJobCounter)),
+    ]);
+
+    return { ...imported, jobCounter: nextJobCounter };
+  }, []);
+
   const getCustomerById = useCallback((id: string) => customers.find(c => c.id === id), [customers]);
   const getPropertyById = useCallback((id: string) => properties.find(p => p.id === id), [properties]);
   const getPropertiesByCustomer = useCallback((customerId: string) => properties.filter(p => p.customerId === customerId), [properties]);
@@ -485,6 +584,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addCustomer, updateCustomer, deleteCustomer,
       addProperty, updateProperty, deleteProperty,
       addJob, updateJob, deleteJob, updateEngineer,
+      createBackup, importBackup,
       getCustomerById, getPropertyById, getPropertiesByCustomer,
       getJobsByCustomer, getJobsByProperty,
     }}>

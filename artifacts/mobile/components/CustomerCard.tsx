@@ -43,17 +43,19 @@ export function CustomerCard({ customer, jobCount = 0, propertyCount = 0, onPres
         {customer.phone ? (
           <View style={styles.detailRow}>
             <Feather name="phone" size={12} color={colors.textTertiary} />
-            <Text style={[styles.detail, { color: colors.textSecondary }]}>{customer.phone}</Text>
+            <Text style={[styles.detail, { color: colors.textSecondary }]} numberOfLines={1}>
+              {customer.phone}
+            </Text>
           </View>
         ) : null}
         <View style={styles.stats}>
           <View style={styles.stat}>
             <Feather name="home" size={12} color={colors.textTertiary} />
-            <Text style={[styles.statText, { color: colors.textTertiary }]}>{propertyCount} {propertyCount === 1 ? "property" : "properties"}</Text>
+            <Text style={[styles.statText, { color: colors.textTertiary }]} numberOfLines={1}>{propertyCount} {propertyCount === 1 ? "property" : "properties"}</Text>
           </View>
           <View style={styles.stat}>
             <Feather name="clipboard" size={12} color={colors.textTertiary} />
-            <Text style={[styles.statText, { color: colors.textTertiary }]}>{jobCount} {jobCount === 1 ? "job" : "jobs"}</Text>
+            <Text style={[styles.statText, { color: colors.textTertiary }]} numberOfLines={1}>{jobCount} {jobCount === 1 ? "job" : "jobs"}</Text>
           </View>
         </View>
       </View>
@@ -90,6 +92,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    minWidth: 0,
     gap: 4,
   },
   name: {
@@ -100,23 +103,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    minWidth: 0,
   },
   detail: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_400Regular",
+    flex: 1,
+    minWidth: 0,
   },
   stats: {
     flexDirection: "row",
     gap: spacing.md,
     marginTop: 2,
+    flexWrap: "wrap",
   },
   stat: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    minWidth: 0,
+    maxWidth: "100%",
   },
   statText: {
     fontSize: fontSize.xs,
     fontFamily: "Inter_400Regular",
+    flexShrink: 1,
   },
 });

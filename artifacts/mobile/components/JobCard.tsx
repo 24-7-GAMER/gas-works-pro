@@ -60,11 +60,15 @@ export function JobCard({ job, customerName, propertyAddress, onPress }: JobCard
           <Feather name={jobIcons[job.jobType] as any} size={18} color={typeColor} />
         </View>
         <View style={styles.headerText}>
-          <Text style={[styles.jobType, { color: colors.text }]}>{JOB_TYPE_LABELS[job.jobType]}</Text>
+          <Text style={[styles.jobType, { color: colors.text }]} numberOfLines={1}>
+            {JOB_TYPE_LABELS[job.jobType]}
+          </Text>
           <Text style={[styles.jobNumber, { color: colors.textTertiary }]}>{job.jobNumber}</Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor + "20" }]}>
-          <Text style={[styles.statusText, { color: statusColor }]}>{STATUS_LABELS[job.status]}</Text>
+          <Text style={[styles.statusText, { color: statusColor }]} numberOfLines={1}>
+            {STATUS_LABELS[job.status]}
+          </Text>
         </View>
       </View>
 
@@ -90,14 +94,18 @@ export function JobCard({ job, customerName, propertyAddress, onPress }: JobCard
         <View style={styles.footer}>
           <View style={styles.detailRow}>
             <Feather name="calendar" size={13} color={colors.textTertiary} />
-            <Text style={[styles.detailText, { color: colors.textSecondary }]}>{formattedDate}</Text>
+            <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>
+              {formattedDate}
+            </Text>
           </View>
           {totalAmount > 0 && (
             <View style={styles.amountWrap}>
               <Text style={[styles.amountLabel, { color: unpaid ? colors.warning : colors.accent }]}>
                 {unpaid ? "Due" : "Paid"}
               </Text>
-              <Text style={[styles.amount, { color: colors.text }]}>£{totalAmount.toFixed(2)}</Text>
+              <Text style={[styles.amount, { color: colors.text }]} numberOfLines={1}>
+                £{totalAmount.toFixed(2)}
+              </Text>
             </View>
           )}
         </View>
@@ -133,6 +141,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    minWidth: 0,
   },
   jobType: {
     fontSize: fontSize.md,
@@ -144,13 +153,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusBadge: {
+    maxWidth: 104,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: radius.full,
+    flexShrink: 1,
   },
   statusText: {
     fontSize: fontSize.xs,
     fontFamily: "Inter_600SemiBold",
+    textAlign: "center",
   },
   divider: {
     height: 1,
@@ -164,6 +176,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    flex: 1,
+    minWidth: 0,
   },
   detailText: {
     fontSize: fontSize.sm,
@@ -175,8 +189,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginTop: 2,
+    gap: spacing.sm,
   },
-  amountWrap: { alignItems: "flex-end" },
+  amountWrap: { alignItems: "flex-end", flexShrink: 0, maxWidth: "42%" },
   amountLabel: { fontSize: fontSize.xs, fontFamily: "Inter_600SemiBold", marginBottom: 2 },
   amount: {
     fontSize: fontSize.md,

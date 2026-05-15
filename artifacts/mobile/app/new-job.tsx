@@ -17,6 +17,8 @@ import { FormField } from "@/components/ui/FormField";
 import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
+import { parseCurrencyInput } from "@/lib/job-finance";
+import { goBackOrReplace } from "@/lib/navigation";
 import {
   JOB_TYPE_COLORS,
   JOB_TYPE_LABELS,
@@ -93,7 +95,16 @@ export default function NewJobScreen() {
   const selectedProperty = properties.find((p) => p.id === propertyId);
 
   const needsAppliance = ["cp12", "boiler_service", "repair", "installation", "warning_notice"].includes(jobType);
-  const hasBilling = Boolean(invoiceDesc.trim() && invoiceAmount.trim() && Number(invoiceAmount) > 0);
+  const parsedInvoiceAmount = parseCurrencyInput(invoiceAmount);
+  const hasBilling = Boolean(invoiceDesc.trim() && invoiceAmount.trim() && parsedInvoiceAmount > 0);
+
+  const handleClose = () => {
+    goBackOrReplace("/(tabs)/jobs");
+  };
+
+  const handlePreviousStep = () => {
+    setStep((current) => Math.max(0, current - 1));
+  };
 
   const handleSave = async () => {
     if (!customerId || !propertyId) {
@@ -102,7 +113,7 @@ export default function NewJobScreen() {
     }
     setIsSaving(true);
     try {
-      const unitPrice = parseFloat(invoiceAmount) || 0;
+      const unitPrice = Number.isFinite(parsedInvoiceAmount) ? parsedInvoiceAmount : 0;
       const vatRate = engineer.vatRegistered ? 20 : 0;
       const amountDue = hasBilling ? unitPrice * (1 + vatRate / 100) : 0;
       const job = await addJob({
@@ -166,29 +177,49 @@ export default function NewJobScreen() {
     >
       {/* Modal header */}
       <View style={[styles.modalHeader, { paddingTop: Math.max(insets.top, 16), borderBottomColor: colors.separator }]}>
-        <Pressable onPress={() => router.back()} style={styles.cancelBtn}>
-          <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
-        </Pressable>
-        <Text style={[styles.modalTitle, { color: colors.text }]}>
+        <View style={styles.headerActions}>
+          <Pressable onPress={handleClose} style={styles.iconBtn} accessibilityLabel="Close new job">
+            <Feather name="x" size={22} color={colors.textSecondary} />
+          </Pressable>
+          {step > 0 ? (
+            <Pressable onPress={handlePreviousStep} style={styles.iconBtn} accessibilityLabel="Previous step">
+              <Feather name="chevron-left" size={24} color={colors.textSecondary} />
+            </Pressable>
+          ) : null}
+        </View>
+        <Text
+          style={[styles.modalTitle, { color: colors.text }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+        >
           {step === 0 ? "Job Type" : step === 1 ? "Customer & Property" : JOB_TYPE_LABELS[jobType]}
         </Text>
-        {step < 2 ? (
-          <Pressable
-            onPress={() => setStep((s) => s + 1)}
-            disabled={step === 1 && (!customerId || !propertyId)}
-            style={[styles.nextBtn, { backgroundColor: step === 1 && (!customerId || !propertyId) ? colors.textTertiary : colors.primary }]}
-          >
-            <Text style={styles.nextBtnText}>Next</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={handleSave}
-            disabled={isSaving}
-            style={[styles.nextBtn, { backgroundColor: colors.accent }]}
-          >
-            <Text style={styles.nextBtnText}>{isSaving ? "Saving..." : "Save"}</Text>
-          </Pressable>
-        )}
+        <View style={styles.headerActions}>
+          <View style={styles.headerSpacer} />
+          {step < 2 ? (
+            <Pressable
+              onPress={() => setStep((s) => s + 1)}
+              disabled={step === 1 && (!customerId || !propertyId)}
+              accessibilityLabel="Next step"
+              style={[
+                styles.primaryIconBtn,
+                { backgroundColor: step === 1 && (!customerId || !propertyId) ? colors.textTertiary : colors.primary },
+              ]}
+            >
+              <Feather name="chevron-right" size={24} color="#fff" />
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={handleSave}
+              disabled={isSaving}
+              accessibilityLabel="Save job"
+              style={[styles.primaryIconBtn, { backgroundColor: isSaving ? colors.textTertiary : colors.accent }]}
+            >
+              <Feather name="check" size={22} color="#fff" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {/* Step 0: Job Type */}
@@ -410,20 +441,31 @@ const styles = StyleSheet.create({
   modalHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  cancelBtn: { paddingVertical: spacing.sm },
-  cancelText: { fontSize: fontSize.md, fontFamily: "Inter_400Regular" },
-  modalTitle: { fontSize: fontSize.lg, fontFamily: "Inter_600SemiBold" },
-  nextBtn: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 8,
-    borderRadius: radius.full,
+  headerActions: {
+    width: 84,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
-  nextBtnText: { fontSize: fontSize.sm, fontFamily: "Inter_600SemiBold", color: "#fff" },
+  headerSpacer: { flex: 1 },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitle: { flex: 1, minWidth: 0, fontSize: fontSize.lg, fontFamily: "Inter_600SemiBold", textAlign: "center" },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: 100, gap: 4 },
   stepHint: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", marginBottom: spacing.lg },

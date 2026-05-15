@@ -15,6 +15,7 @@ import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
 import { getJobAmountDue, isJobUnpaid } from "@/lib/job-finance";
+import { goBackOrReplace } from "@/lib/navigation";
 import {
   JOB_TYPE_COLORS,
   JOB_TYPE_LABELS,
@@ -38,9 +39,10 @@ const rowStyles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     paddingVertical: spacing.sm,
+    gap: spacing.md,
   },
-  label: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1 },
-  value: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", flex: 1.5, textAlign: "right" },
+  label: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1, minWidth: 0 },
+  value: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", flex: 1.5, minWidth: 0, textAlign: "right", flexWrap: "wrap" },
 });
 
 export default function JobDetailScreen() {
@@ -68,6 +70,17 @@ export default function JobDetailScreen() {
   const totalInc = totalExVat + totalVat;
   const amountDue = getJobAmountDue(job);
   const unpaid = isJobUnpaid(job);
+  const hasBillingDocument = (job.invoiceItems?.length ?? 0) > 0 || amountDue > 0;
+  const documentLabel =
+    job.jobType === "invoice"
+      ? "Invoice"
+      : job.jobType === "quote"
+      ? "Quote"
+      : job.jobType === "boiler_service"
+      ? "Service Record"
+      : job.jobType === "cp12"
+      ? "Certificate"
+      : "Document";
 
   const handleMarkPaid = () => {
     Alert.alert("Mark as Paid", "Mark this job as paid?", [
@@ -87,7 +100,7 @@ export default function JobDetailScreen() {
         style: "destructive",
         onPress: async () => {
           await deleteJob(job.id);
-          router.back();
+          goBackOrReplace("/(tabs)/jobs");
         },
       },
     ]);
@@ -95,6 +108,10 @@ export default function JobDetailScreen() {
 
   const handleViewCertificate = () => {
     router.push({ pathname: "/certificate", params: { jobId: job.id } });
+  };
+
+  const handleViewInvoice = () => {
+    router.push({ pathname: "/certificate", params: { jobId: job.id, docType: "invoice" } });
   };
 
   const openPhone = async () => {
@@ -311,7 +328,7 @@ ${job.companyName}`;
                 <Text style={[styles.invoiceItemQty, { color: colors.textTertiary }]}>
                   {item.quantity} x £{item.unitPrice.toFixed(2)} + {item.vatRate}% VAT
                 </Text>
-                <Text style={[styles.invoiceItemTotal, { color: colors.text }]}>
+                <Text style={[styles.invoiceItemTotal, { color: colors.text }]} numberOfLines={1}>
                   £{(item.quantity * item.unitPrice * (1 + item.vatRate / 100)).toFixed(2)}
                 </Text>
               </View>
@@ -364,8 +381,15 @@ ${job.companyName}`;
       <View style={styles.actions}>
         <Pressable onPress={handleViewCertificate} style={[styles.actionBtn, { backgroundColor: colors.primary }]}>
           <Feather name="eye" size={18} color="#fff" />
-          <Text style={styles.actionBtnText}>View Certificate</Text>
+          <Text style={styles.actionBtnText}>View {documentLabel}</Text>
         </Pressable>
+
+        {hasBillingDocument && !["invoice", "quote"].includes(job.jobType) && (
+          <Pressable onPress={handleViewInvoice} style={[styles.actionBtn, { backgroundColor: colors.warning }]}>
+            <Feather name="file-text" size={18} color="#fff" />
+            <Text style={styles.actionBtnText}>View Invoice</Text>
+          </Pressable>
+        )}
 
         <Pressable
           onPress={() => router.push(`/edit-billing?jobId=${job.id}` as any)}
@@ -470,13 +494,13 @@ const styles = StyleSheet.create({
   textBlockValue: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", lineHeight: 20 },
   invoiceItem: { paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#33415540" },
   invoiceItemDesc: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", marginBottom: 2 },
-  invoiceItemRow: { flexDirection: "row", justifyContent: "space-between" },
-  invoiceItemQty: { fontSize: fontSize.xs, fontFamily: "Inter_400Regular" },
-  invoiceItemTotal: { fontSize: fontSize.sm, fontFamily: "Inter_600SemiBold" },
+  invoiceItemRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
+  invoiceItemQty: { fontSize: fontSize.xs, fontFamily: "Inter_400Regular", flex: 1, minWidth: 0 },
+  invoiceItemTotal: { fontSize: fontSize.sm, fontFamily: "Inter_600SemiBold", flexShrink: 0 },
   invoiceTotals: { borderTopWidth: 1, paddingTop: spacing.md, marginTop: spacing.sm, gap: spacing.sm },
-  invoiceTotalRow: { flexDirection: "row", justifyContent: "space-between" },
-  invoiceTotalLabel: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular" },
-  invoiceTotalValue: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium" },
+  invoiceTotalRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
+  invoiceTotalLabel: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1, minWidth: 0 },
+  invoiceTotalValue: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", flexShrink: 0, textAlign: "right" },
   invoiceTotalGrand: { paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#33415540" },
   invoiceGrandLabel: { fontSize: fontSize.lg, fontFamily: "Inter_700Bold" },
   invoiceGrandValue: { fontSize: fontSize.xl, fontFamily: "Inter_700Bold" },

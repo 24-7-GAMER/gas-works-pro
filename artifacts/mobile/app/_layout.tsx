@@ -7,16 +7,31 @@ import {
 } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useColorScheme } from "react-native";
+import { Pressable, Text, useColorScheme } from "react-native";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import Colors from "@/constants/colors";
+import { goBackOrReplace } from "@/lib/navigation";
+
+function BackButton({ fallbackPath, tintColor }: { fallbackPath: string; tintColor: string }) {
+  return (
+    <Pressable
+      onPress={() => goBackOrReplace(fallbackPath)}
+      hitSlop={12}
+      style={{ flexDirection: "row", alignItems: "center", paddingRight: 12 }}
+    >
+      <Feather name="chevron-left" size={24} color={tintColor} />
+      <Text style={{ color: tintColor, fontSize: 16, fontFamily: "Inter_500Medium" }}>Back</Text>
+    </Pressable>
+  );
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,7 +54,7 @@ function RootLayoutNav() {
         name="customer/[id]"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
+          headerLeft: () => <BackButton fallbackPath="/(tabs)/customers" tintColor={colors.primary} />,
           headerLargeTitle: false,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
@@ -51,7 +66,7 @@ function RootLayoutNav() {
         name="property/[id]"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
+          headerLeft: () => <BackButton fallbackPath="/(tabs)/customers" tintColor={colors.primary} />,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
           headerTitle: "",
@@ -62,7 +77,7 @@ function RootLayoutNav() {
         name="job/[id]"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
+          headerLeft: () => <BackButton fallbackPath="/(tabs)/jobs" tintColor={colors.primary} />,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
           headerTitle: "",
@@ -101,7 +116,7 @@ function RootLayoutNav() {
         name="settings"
         options={{
           headerShown: true,
-          headerBackTitle: "Back",
+          headerLeft: () => <BackButton fallbackPath="/(tabs)/more" tintColor={colors.primary} />,
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
           headerTitle: "Settings",

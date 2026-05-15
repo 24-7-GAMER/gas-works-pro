@@ -65,10 +65,10 @@ export default function PropertyDetailScreen() {
         <View style={[styles.headerIcon, { backgroundColor: colors.info + "20" }]}>
           <Feather name="home" size={28} color={colors.info} />
         </View>
-        <Text style={[styles.address, { color: colors.text }]}>{property.address}</Text>
-        <Text style={[styles.postcode, { color: colors.textSecondary }]}>{property.postcode}</Text>
+        <Text style={[styles.address, { color: colors.text }]} numberOfLines={2}>{property.address}</Text>
+        <Text style={[styles.postcode, { color: colors.textSecondary }]} numberOfLines={1}>{property.postcode}</Text>
         <View style={[styles.typeBadge, { backgroundColor: colors.primary + "20" }]}>
-          <Text style={[styles.typeBadgeText, { color: colors.primary }]}>
+          <Text style={[styles.typeBadgeText, { color: colors.primary }]} numberOfLines={1}>
             {property.propertyType === "landlord" ? "Landlord Property" : property.propertyType === "commercial" ? "Commercial" : "Residential"}
           </Text>
         </View>
@@ -87,7 +87,7 @@ export default function PropertyDetailScreen() {
           <Feather name="user" size={18} color={colors.primary} />
           <View style={styles.customerInfo}>
             <Text style={[styles.customerLabel, { color: colors.textTertiary }]}>Customer</Text>
-            <Text style={[styles.customerName, { color: colors.text }]}>{customer.name}</Text>
+            <Text style={[styles.customerName, { color: colors.text }]} numberOfLines={1}>{customer.name}</Text>
           </View>
           <Feather name="chevron-right" size={16} color={colors.textTertiary} />
         </Pressable>
@@ -97,17 +97,17 @@ export default function PropertyDetailScreen() {
       {property.propertyType === "landlord" && property.landlordName && (
         <View style={[styles.landlordCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <Text style={[styles.cardLabel, { color: colors.textTertiary }]}>LANDLORD DETAILS</Text>
-          <Text style={[styles.landlordName, { color: colors.text }]}>{property.landlordName}</Text>
+          <Text style={[styles.landlordName, { color: colors.text }]} numberOfLines={1}>{property.landlordName}</Text>
           {property.landlordPhone && (
             <Pressable onPress={() => openPhone(property.landlordPhone)} style={styles.detailRow}>
               <Feather name="phone" size={13} color={colors.textTertiary} />
-              <Text style={[styles.detailText, { color: colors.textSecondary }]}>{property.landlordPhone}</Text>
+              <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{property.landlordPhone}</Text>
             </Pressable>
           )}
           {property.landlordEmail && (
             <Pressable onPress={() => openEmail(property.landlordEmail)} style={styles.detailRow}>
               <Feather name="mail" size={13} color={colors.textTertiary} />
-              <Text style={[styles.detailText, { color: colors.textSecondary }]}>{property.landlordEmail}</Text>
+              <Text style={[styles.detailText, { color: colors.textSecondary }]} numberOfLines={1}>{property.landlordEmail}</Text>
             </Pressable>
           )}
         </View>
@@ -117,18 +117,18 @@ export default function PropertyDetailScreen() {
       <View style={styles.certRow}>
         <View style={[styles.certCard, { backgroundColor: lastCp12 ? colors.accent + "15" : colors.danger + "15", borderColor: lastCp12 ? colors.accent : colors.danger }]}>
           <Feather name="shield" size={20} color={lastCp12 ? colors.accent : colors.danger} />
-          <View>
-            <Text style={[styles.certTitle, { color: lastCp12 ? colors.accent : colors.danger }]}>CP12</Text>
-            <Text style={[styles.certDate, { color: colors.textSecondary }]}>
+          <View style={styles.certText}>
+            <Text style={[styles.certTitle, { color: lastCp12 ? colors.accent : colors.danger }]} numberOfLines={1}>CP12</Text>
+            <Text style={[styles.certDate, { color: colors.textSecondary }]} numberOfLines={1}>
               {lastCp12 ? new Date(lastCp12.date).toLocaleDateString("en-GB") : "No record"}
             </Text>
           </View>
         </View>
         <View style={[styles.certCard, { backgroundColor: lastService ? colors.info + "15" : colors.warning + "15", borderColor: lastService ? colors.info : colors.warning }]}>
           <Feather name="tool" size={20} color={lastService ? colors.info : colors.warning} />
-          <View>
-            <Text style={[styles.certTitle, { color: lastService ? colors.info : colors.warning }]}>Service</Text>
-            <Text style={[styles.certDate, { color: colors.textSecondary }]}>
+          <View style={styles.certText}>
+            <Text style={[styles.certTitle, { color: lastService ? colors.info : colors.warning }]} numberOfLines={1}>Service</Text>
+            <Text style={[styles.certDate, { color: colors.textSecondary }]} numberOfLines={1}>
               {lastService ? new Date(lastService.date).toLocaleDateString("en-GB") : "No record"}
             </Text>
           </View>
@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   address: { fontSize: fontSize.xl, fontFamily: "Inter_700Bold", textAlign: "center" },
   postcode: { fontSize: fontSize.md, fontFamily: "Inter_400Regular" },
   typeBadge: {
+    maxWidth: "100%",
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
     borderRadius: radius.full,
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
   },
-  customerInfo: { flex: 1 },
+  customerInfo: { flex: 1, minWidth: 0 },
   customerLabel: { fontSize: fontSize.xs, fontFamily: "Inter_400Regular" },
   customerName: { fontSize: fontSize.md, fontFamily: "Inter_600SemiBold" },
   pressed: { opacity: 0.75 },
@@ -230,8 +231,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   landlordName: { fontSize: fontSize.md, fontFamily: "Inter_600SemiBold" },
-  detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  detailText: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular" },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minWidth: 0 },
+  detailText: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1, minWidth: 0 },
   certRow: {
     flexDirection: "row",
     marginHorizontal: spacing.lg,
@@ -240,6 +241,7 @@ const styles = StyleSheet.create({
   },
   certCard: {
     flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
@@ -247,6 +249,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: spacing.md,
   },
+  certText: { flex: 1, minWidth: 0 },
   certTitle: { fontSize: fontSize.sm, fontFamily: "Inter_700Bold" },
   certDate: { fontSize: fontSize.xs, fontFamily: "Inter_400Regular" },
   notesCard: {

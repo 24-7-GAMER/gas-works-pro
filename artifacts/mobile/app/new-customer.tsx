@@ -17,6 +17,7 @@ import { FormField } from "@/components/ui/FormField";
 import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
+import { goBackOrReplace } from "@/lib/navigation";
 
 export default function NewCustomerScreen() {
   const scheme = useColorScheme() ?? "dark";
@@ -71,7 +72,7 @@ export default function NewCustomerScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 16), borderBottomColor: colors.separator }]}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => goBackOrReplace("/(tabs)/customers")}>
           <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </Pressable>
         <Text style={[styles.title, { color: colors.text }]}>New Customer</Text>

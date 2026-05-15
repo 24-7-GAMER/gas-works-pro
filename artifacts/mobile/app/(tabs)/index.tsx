@@ -15,6 +15,7 @@ import { JobCard } from "@/components/JobCard";
 import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
+import { getJobRevenue } from "@/lib/job-finance";
 import {
   JOB_TYPE_COLORS,
   JOB_TYPE_LABELS,
@@ -50,10 +51,7 @@ export default function DashboardScreen() {
       return j.status === "completed" && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
     const revenue = jobs
-      .filter((j) => j.status === "paid" || j.status === "invoiced")
-      .reduce((sum, j) => {
-        return sum + (j.invoiceItems?.reduce((s, i) => s + i.quantity * i.unitPrice * (1 + i.vatRate / 100), 0) ?? 0);
-      }, 0);
+      .reduce((sum, j) => sum + getJobRevenue(j), 0);
     return { todayJobs, pendingInvoices, completedThisMonth, revenue };
   }, [jobs]);
 
@@ -69,13 +67,15 @@ export default function DashboardScreen() {
         styles.content,
         { paddingTop: topInset + 4, paddingBottom: bottomInset + 120 },
       ]}
+      contentInsetAdjustmentBehavior="never"
+      automaticallyAdjustContentInsets={false}
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerText}>
           <Text style={[styles.greeting, { color: colors.textSecondary }]}>Good morning</Text>
-          <Text style={[styles.name, { color: colors.text }]}>{engineer.name}</Text>
+          <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{engineer.name}</Text>
         </View>
         <Pressable
           onPress={() => router.push("/settings")}
@@ -94,9 +94,9 @@ export default function DashboardScreen() {
 
       {/* Revenue */}
       <View style={[styles.revenueCard, { backgroundColor: colors.primary }]}>
-        <View>
+        <View style={styles.revenueText}>
           <Text style={styles.revenueLabel}>Revenue (invoiced + paid)</Text>
-          <Text style={styles.revenueAmount}>£{stats.revenue.toFixed(2)}</Text>
+          <Text style={styles.revenueAmount} numberOfLines={1}>£{stats.revenue.toFixed(2)}</Text>
         </View>
         <View style={styles.revenueIcon}>
           <Feather name="trending-up" size={32} color="rgba(255,255,255,0.6)" />
@@ -169,7 +169,7 @@ function StatCard({
     <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
       <Feather name={icon as any} size={16} color={color} />
       <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: colors.textTertiary }]}>{label}</Text>
+      <Text style={[styles.statLabel, { color: colors.textTertiary }]} numberOfLines={2}>{label}</Text>
     </View>
   );
 }
@@ -183,7 +183,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
+    gap: spacing.md,
   },
+  headerText: { flex: 1, minWidth: 0 },
   greeting: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_400Regular",
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
+    minWidth: 0,
     padding: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -221,6 +224,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
+    lineHeight: 13,
   },
   revenueCard: {
     marginHorizontal: spacing.lg,
@@ -230,7 +234,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: spacing.lg,
+    gap: spacing.md,
   },
+  revenueText: { flex: 1, minWidth: 0 },
   revenueLabel: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_400Regular",
@@ -260,6 +266,7 @@ const styles = StyleSheet.create({
   },
   quickAction: {
     width: "47%",
+    minWidth: 0,
     borderRadius: radius.lg,
     borderWidth: 1,
     padding: spacing.md,
@@ -276,6 +283,7 @@ const styles = StyleSheet.create({
   quickActionLabel: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_600SemiBold",
+    lineHeight: 18,
   },
   pressed: { opacity: 0.7 },
   emptyState: {

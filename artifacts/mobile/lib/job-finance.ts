@@ -10,6 +10,20 @@ export function getJobTotalAmount(job: Pick<Job, "invoiceItems">) {
   );
 }
 
+export function parseCurrencyInput(value: string) {
+  const stripped = value.trim().replace(/£/g, "").replace(/\s/g, "");
+  const lastComma = stripped.lastIndexOf(",");
+  const lastDot = stripped.lastIndexOf(".");
+  const decimalSeparator = lastComma > lastDot ? "," : ".";
+  const normalized =
+    decimalSeparator === ","
+      ? stripped.replace(/\./g, "").replace(",", ".")
+      : stripped.replace(/,/g, "");
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
 export function getJobAmountDue(job: Pick<Job, "amountDue" | "invoiceItems">) {
   if (typeof job.amountDue === "number" && Number.isFinite(job.amountDue)) {
     return job.amountDue;

@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Alert,
@@ -16,6 +16,8 @@ import { FormField } from "@/components/ui/FormField";
 import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
+import { getJobAmountDue, parseCurrencyInput } from "@/lib/job-finance";
+import { goBackOrReplace } from "@/lib/navigation";
 
 export default function EditBillingScreen() {
   const { jobId } = useLocalSearchParams<{ jobId: string }>();
@@ -28,12 +30,12 @@ export default function EditBillingScreen() {
   const firstInvoiceItem = job?.invoiceItems?.[0];
 
   const [description, setDescription] = useState(firstInvoiceItem?.description ?? "");
-  const [amountDue, setAmountDue] = useState(job?.amountDue ? String(job.amountDue.toFixed(2)) : "");
+  const [amountDue, setAmountDue] = useState(job ? String(getJobAmountDue(job).toFixed(2)) : "");
   const [dueDate, setDueDate] = useState(job?.dueDate ?? "");
   const [notes, setNotes] = useState(job?.invoiceNotes ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
-  const parsedAmount = useMemo(() => Number(amountDue), [amountDue]);
+  const parsedAmount = useMemo(() => parseCurrencyInput(amountDue), [amountDue]);
 
   if (!job) {
     return (
@@ -54,15 +56,20 @@ export default function EditBillingScreen() {
       const invoiceItems =
         job.invoiceItems && job.invoiceItems.length > 1
           ? job.invoiceItems
-          : [
-              {
-                id: firstInvoiceItem?.id ?? Date.now().toString(),
-                description: description.trim() || "Job charge",
-                quantity: 1,
-                unitPrice: parsedAmount,
-                vatRate: firstInvoiceItem?.vatRate ?? (engineer.vatRegistered ? 20 : 0),
-              },
-            ];
+          : (() => {
+              const vatRate = firstInvoiceItem?.vatRate ?? (engineer.vatRegistered ? 20 : 0);
+              const unitPrice = parsedAmount / (1 + vatRate / 100);
+
+              return [
+                {
+                  id: firstInvoiceItem?.id ?? Date.now().toString(),
+                  description: description.trim() || "Job charge",
+                  quantity: 1,
+                  unitPrice,
+                  vatRate,
+                },
+              ];
+            })();
 
       await updateJob(job.id, {
         invoiceItems,
@@ -72,7 +79,7 @@ export default function EditBillingScreen() {
         status: job.status === "paid" ? "paid" : "invoiced",
       });
 
-      router.back();
+      goBackOrReplace({ pathname: "/job/[id]", params: { id: job.id } } as any);
     } finally {
       setIsSaving(false);
     }
@@ -84,7 +91,7 @@ export default function EditBillingScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <View style={[styles.header, { paddingTop: Math.max(insets.top, 16), borderBottomColor: colors.separator }]}>
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => goBackOrReplace({ pathname: "/job/[id]", params: { id: job.id } } as any)}>
           <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
         </Pressable>
         <Text style={[styles.title, { color: colors.text }]}>Edit Billing</Text>

@@ -18,7 +18,7 @@ export function Badge({ label, color, size = "md" }: BadgeProps) {
 
   return (
     <View style={[styles.badge, { backgroundColor: bg }, size === "sm" && styles.sm]}>
-      <Text style={[styles.text, { color: text }, size === "sm" && styles.textSm]}>
+      <Text style={[styles.text, { color: text }, size === "sm" && styles.textSm]} numberOfLines={1}>
         {label}
       </Text>
     </View>
@@ -27,6 +27,7 @@ export function Badge({ label, color, size = "md" }: BadgeProps) {
 
 const styles = StyleSheet.create({
   badge: {
+    maxWidth: "100%",
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radius.full,
@@ -39,6 +40,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: fontSize.sm,
     fontFamily: "Inter_600SemiBold",
+    flexShrink: 1,
   },
   textSm: {
     fontSize: 11,

@@ -16,6 +16,7 @@ import { PressableCard } from "@/components/ui/PressableCard";
 import Colors from "@/constants/colors";
 import { fontSize, radius, spacing } from "@/constants/theme";
 import { useApp } from "@/context/AppContext";
+import { goBackOrReplace } from "@/lib/navigation";
 
 export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,14 +63,14 @@ export default function CustomerDetailScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert("Delete Customer", "Are you sure? This will not delete their jobs or properties.", [
+    Alert.alert("Delete Customer", "Are you sure? This will delete their properties and jobs too.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
           await deleteCustomer(customer.id);
-          router.back();
+          goBackOrReplace("/(tabs)/customers");
         },
       },
     ]);
@@ -86,7 +87,7 @@ export default function CustomerDetailScreen() {
         <View style={[styles.avatar, { backgroundColor: colors.primary + "20" }]}>
           <Text style={[styles.initials, { color: colors.primary }]}>{initials}</Text>
         </View>
-        <Text style={[styles.name, { color: colors.text }]}>{customer.name}</Text>
+        <Text style={[styles.name, { color: colors.text }]} numberOfLines={2}>{customer.name}</Text>
         <Text style={[styles.address, { color: colors.textSecondary }]}>{customer.address}</Text>
       </View>
 
@@ -95,7 +96,7 @@ export default function CustomerDetailScreen() {
         {customer.phone ? (
           <Pressable onPress={handleCall} style={[styles.contactBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <Feather name="phone" size={18} color={colors.accent} />
-            <Text style={[styles.contactBtnLabel, { color: colors.text }]}>{customer.phone}</Text>
+            <Text style={[styles.contactBtnLabel, { color: colors.text }]} numberOfLines={1}>{customer.phone}</Text>
           </Pressable>
         ) : null}
         {customer.email ? (
@@ -143,8 +144,8 @@ export default function CustomerDetailScreen() {
                 <Feather name="home" size={16} color={colors.info} />
               </View>
               <View style={styles.propertyInfo}>
-                <Text style={[styles.propertyAddress, { color: colors.text }]}>{property.address}</Text>
-                <Text style={[styles.propertyPostcode, { color: colors.textTertiary }]}>
+                <Text style={[styles.propertyAddress, { color: colors.text }]} numberOfLines={1}>{property.address}</Text>
+                <Text style={[styles.propertyPostcode, { color: colors.textTertiary }]} numberOfLines={1}>
                   {property.postcode} · {property.propertyType === "landlord" ? "Landlord" : "Residential"}
                 </Text>
               </View>
@@ -226,14 +227,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.md,
   },
-  contactBtnLabel: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", flex: 1 },
+  contactBtnLabel: { fontSize: fontSize.sm, fontFamily: "Inter_500Medium", flex: 1, minWidth: 0 },
   notesCard: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.md,
   },
   notesRow: { flexDirection: "row", gap: spacing.sm },
-  notesText: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1 },
+  notesText: { fontSize: fontSize.sm, fontFamily: "Inter_400Regular", flex: 1, minWidth: 0 },
   section: { marginBottom: spacing.xl },
   sectionHeader: {
     flexDirection: "row",
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  propertyInfo: { flex: 1 },
+  propertyInfo: { flex: 1, minWidth: 0 },
   propertyAddress: { fontSize: fontSize.md, fontFamily: "Inter_500Medium" },
   propertyPostcode: { fontSize: fontSize.xs, fontFamily: "Inter_400Regular", marginTop: 2 },
   pressed: { opacity: 0.75 },
