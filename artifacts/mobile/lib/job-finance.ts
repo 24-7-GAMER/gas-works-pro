@@ -18,6 +18,11 @@ export function getJobAmountDue(job: Pick<Job, "amountDue" | "invoiceItems">) {
   return getJobTotalAmount(job);
 }
 
+export function getJobRevenue(job: Pick<Job, "status" | "amountDue" | "invoiceItems">) {
+  if (job.status !== "paid" && job.status !== "invoiced") return 0;
+  return getJobAmountDue(job);
+}
+
 export function isJobUnpaid(job: Pick<Job, "status" | "jobType" | "amountDue" | "invoiceItems">) {
   if (job.jobType === "quote") return false;
   return getJobAmountDue(job) > 0 && job.status !== "paid";
