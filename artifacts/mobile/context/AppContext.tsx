@@ -400,6 +400,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        console.log("[AppProvider] Starting initialization...");
         const [c, p, j, e, jc] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.customers),
           AsyncStorage.getItem(STORAGE_KEYS.properties),
@@ -408,18 +409,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(STORAGE_KEYS.jobCounter),
         ]);
 
-        setCustomers(c ? JSON.parse(c) : SAMPLE_CUSTOMERS);
-        setProperties(p ? JSON.parse(p) : SAMPLE_PROPERTIES);
-        setJobs(j ? JSON.parse(j) : SAMPLE_JOBS);
-        setEngineer(e ? JSON.parse(e) : SAMPLE_ENGINEER);
-        setJobCounter(jc ? parseInt(jc, 10) : 4);
+        console.log("[AppProvider] Storage items retrieved successfully");
+        
+        try {
+          setCustomers(c ? JSON.parse(c) : SAMPLE_CUSTOMERS);
+          setProperties(p ? JSON.parse(p) : SAMPLE_PROPERTIES);
+          setJobs(j ? JSON.parse(j) : SAMPLE_JOBS);
+          setEngineer(e ? JSON.parse(e) : SAMPLE_ENGINEER);
+          setJobCounter(jc ? parseInt(jc, 10) : 4);
+        } catch (parseErr) {
+          console.error("[AppProvider] Failed to parse stored data:", parseErr);
+          throw parseErr;
+        }
 
         if (!c) await AsyncStorage.setItem(STORAGE_KEYS.customers, JSON.stringify(SAMPLE_CUSTOMERS));
         if (!p) await AsyncStorage.setItem(STORAGE_KEYS.properties, JSON.stringify(SAMPLE_PROPERTIES));
         if (!j) await AsyncStorage.setItem(STORAGE_KEYS.jobs, JSON.stringify(SAMPLE_JOBS));
         if (!e) await AsyncStorage.setItem(STORAGE_KEYS.engineer, JSON.stringify(SAMPLE_ENGINEER));
         if (!jc) await AsyncStorage.setItem(STORAGE_KEYS.jobCounter, "4");
+        
+        console.log("[AppProvider] Initialization completed successfully");
       } catch (err) {
+        console.error("[AppProvider] Initialization failed, using sample data:", err);
         setCustomers(SAMPLE_CUSTOMERS);
         setProperties(SAMPLE_PROPERTIES);
         setJobs(SAMPLE_JOBS);
